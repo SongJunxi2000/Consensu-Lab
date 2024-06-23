@@ -1,0 +1,396 @@
+\pagebreak
+
+\section{Introduction}
+\label{sec:intro}
+%Consensus mechanisms are pervasive. They allow distributed systems to agree on a joint view of the computation and make consistent decisions, allowing them to work together securely. Even before cryptocurrencies, which typically come to mind when thinking of consensus protocols, became popular, consensus mechanisms were widely used. In aircraft systems consensus protocols were used as early as 1970s in order to ensure that the aircraft control system can withstand a failure of one of its components.
+In this lab, you will learn how to construct and analyze consensus protocols. In particular, we will start by implementing a toy ``majority vote'' protocol and understand why this protocol is insecure by designing attacks that violate the security properties (validity and consistency) of a consensus protocol. We will then implement the Dolev-Strong protocol, which is indeed a secure consensus mechanism. We will try understand why the Dolev-Strong protocol is designed exactly the way it is, and why certain variations and simplifications of it would break the protocol's security. To do this, you will be asked to design attacks that violate the consistency or the validity properties of insecure variants of Dolev-Strong.
+
+%\input{Introduction}
+\section{Project Structure}
+
+% \begin{wrapfigure}{l}{0.382\textwidth}
+%     \centering
+%     \includegraphics[width=0.382\textwidth]{handout/project_structure.png}
+% \end{wrapfigure}
+\paragraph{\large Starter code.}
+The starter code is in the folder {\tt Code}. All the code for Checkpoint 0, 1, and 2, including the project dependency and submission files, are included in this zip file.
+%The handout for Checkpoint 2 is this as well and all 
+%the details for it can be found in Section~\ref{sec:cp2}.
+
+
+
+%After the releasing of Checkpoint 2, there will be another file uploaded to the folder. Read the ``Introduction'' section and 
+%the ``Project Structure'' section to understand the framework.
+%=======
+%Read the Section~\ref{sec:intro} Introduction and Section~\ref{sec:structure} Project Structure to understand the framework.
+%Download the starter code from \href{https://drive.google.com/drive/folders/1AE_SZClkbaKC8PFtOMcnd6aCjgOH-MTA?usp=sharing}{google drive here}. 
+%All the code for Checkpoint 0 and 1, including the project dependency and submission files, are in the folder \texttt{Code}. 
+%The Checkpoint 2 will be released on October 25. This release would involve a new version of \texttt{Dolev\_Strong\_Player.java} file that will be uploaded to the same google drive folder above. 
+
+\paragraph{Directory structure.}
+The main directory for the source code is
+\begin{center}
+    \texttt{code/src},
+\end{center}
+\noindent henceforth we also refer to this directory as {\tt ./}.
+There are four folders under {\tt ./}.
+\begin{enumerate}[leftmargin=5mm]
+    \item
+    The {\tt ./Main} folder has two factory for the list of adversaries and players in this project.
+    \item
+          The {\tt ./Protocol} folder has all protocols and their corresponding adversaries we provided to you, everything you need to change is in {\tt ./Protocol} folder,
+    \item
+          The {\tt ./Simulator} folder is the framework of the simulator, and
+          we will explain what each class does shortly.
+    \item Finally, the {\tt ./Test} folder contains some tests we have created for you.
+          In our Autograder, we have additional hidden test cases,
+          so we encourage you to write more adversaries and tests yourself.
+\end{enumerate}
+
+
+For each protocol or attack, we have created a file for you where your code should be,
+you should complete your work without changing anything outside the designated file. To test your programs locally, you could run some tests we provided to you in the {\tt ./Test} folder.
+%At the end of the project, you should be able to analyze basic consensus schemes and specifically understand the intuition behind the security properties achieved by such consensus protocols.
+
+
+\subsection{Consensus Simulator Framework}
+%\subsection{Engine, Signature, Authenticated Channel Model}
+
+%The consensus simulator framework 
+%has three main modules, idealized signature [Fsign], 
+%authenticated channel [Fauth], and [simulation engine].
+%\bigskip
+The following modules in the consensus framework will be relevant to you.
+Below, we explain them one by one.
+
+
+%\paragraph{Signature module:}
+\subsubsection{Idealized Signature Module}
+%The idealized signature [Fsign] basically has two functions, 
+% The idealized signature class {\tt Fsign} has two important functions:
+% the {\tt sign} function signs a message on behalf of a player,
+% the {\tt verification}
+% function checks if
+% a purported signature is valid given a message and a purported signer.
+
+%sign a message for a player and check the signature. 
+In your implementation, you can call the {\tt sign}
+function in the {\tt Player} class (or any class that extends {\tt Player})
+class to sign messages
+on behalf of the player, and call
+the {\tt verify}
+function to verify if the purported signature is valid.
+
+Specifically, {\tt Player.sign}
+returns
+a string that includes the message
+itself, the signature,
+and the signer.
+This string is the {\tt json} serialization
+of a {\tt SignedM} object
+which we will explain shortly\footnote{If you are
+    interested in JSON, you can learn more on how it works
+    at \url{https://sites.google.com/site/gson/gson-user-guide}.
+    %\href{https://sites.google.com/site/gson/gson-user-guide#TOC-Primitives-Examples}{here}.
+}.
+
+
+%that signs messages for you. 
+%To sign a message, one could extend the {\tt Player} class and call the 
+%{\tt sign} function there.   
+%only verification method should be called in your implementation. 
+%The {\tt verification} method takes the signer's id, the message, and the signature, then checks if  the purported signature is valid for the message given the signer. 
+%this message is signed by the player under that signature. 
+%\bigskip
+
+%\noindent
+%\textbf{Authenticated channel:}
+\subsubsection{Authenticated Channel and Message Sending}
+
+The communication between players is through an authenticated channel class
+    {\tt Fauth}.
+The channel is authenticated in the sense that the message
+recipient can know who is the true sender.
+To work with the authenticated channel, in your implementation, you
+need to know that the messages that a player receives
+is an object of the {\tt Package} class, which includes
+the {\tt sender}, the {\tt receiver}, and the actual message {\tt strSignedM}
+whose type is a raw {\tt String}.
+It is guaranteed that the receiver identity agrees with the recipient's identity.
+
+To parse the received string  {\tt strSignedM} (of type {\tt String}),
+you can call
+the {\tt Player.parseSingleMsg} function
+(or call it from any object that extends {\tt Player})
+to convert it to an object of the {\tt SignedM} class.
+The {\tt SignedM} class
+includes the actual message {\tt msg}  as a {\tt String},
+the {\tt signer}, and the signature
+    {\tt sig} as a {\tt String}.
+
+To send a message, you can call
+    {\tt Player.send}
+which takes the message of the type {\tt String} to send,
+and the recipient identity.
+If you want the message
+to be signed, you could directly pass
+the output of {\tt Player.sign}
+to {\tt Player.send}, since
+    {\tt Player.sign}
+is a wrapper that did all
+the serialization work for you (as we explained earlier).
+
+
+
+
+%The authenticated channel [Fauth] sends packages between players. The format of Packages sent by [Fauth] is string, and [Fauth] checks the identity of the sender by the private key. [Package] class is used for [Fauth] to record the sender, receiver, and message. [sender] in [Package] is the actual sender checked by the authenticated channel, while the signature (not in [Fauth]) is a mark used by the sender. In an unauthenticated channel, [sender] in [Package] may not be the real sender. 
+%\bigskip
+
+\subsubsection{Simulation Engine}
+The simulation engine, i.e., the {\tt Simulation\_Engine}
+class, will initialize
+the idealized signature, the authenticated
+channel, all players, as well as the provided adversary if any.
+%Simulation engine will initialize the signature model, authenticated channel, all players, the provided adversary. To avoid framework attack, the simulator will assign each player a public id and a  private key corresponding to it. 
+After the initialization, the simulator begins a round-by-round simulation.
+In each round, the engine will call the {\tt action} method of each honest player and then call the adversary's {\tt attack} method.
+There will be one global instance of the {\tt Simulation\_Engine}
+class called {\tt engine}.
+%Your code should not have to call {\tt engine} directly.
+%If you want to check which round the player is in, you can call
+%{\tt engine.roundNumber}.
+Your code may need to call the following functions inside {\tt engine}:
+\begin{itemize}[leftmargin=5mm]
+    \item
+          {\tt engine.roundNumber}:
+          returns the current round number;
+    \item
+          {\tt engine.numOfPlayers}:
+          returns the total number of players;
+    \item
+          {\tt engine.numOfFaultyPlayers}:
+          returns the maximum number of faulty players.
+    \item
+          {\tt engine.checkOutput}:
+          returns {\tt false} if either consistency or validity is broken during
+          an execution of the protocol,
+          else returns {\tt true}.
+
+          %\item 
+          %{\tt engine.numOfPlayers}:
+\end{itemize}
+
+%When you implemented a consensus player (which extends the {\tt Player} class), 
+%you should call the 
+%{\tt engine.output}
+%when player wants to output an outcome.
+
+%Simulation engine also has [terminate], [output], and [endRound] function which players should call if they want to terminate the protocol, output the final result, and end the current round.  
+\ignore{
+    \bigskip
+
+    \subsection{Message Sending}
+    In real world, the message sent by authenticated channels are not parsed and users need to parse the information themselves. Here we created the [Package] class and [SignedM] class to simulate the real world and help with parsing.
+    \bigskip
+
+    \noindent
+    \textbf{Package:}
+
+    We created a class [Package], used by the communication channel, which contains the message string, the sender, and the receiver, to tell the player what the message is, who the actual sender is, and who is this message for. However, player still needs to parse the message string to extract useful information.
+    \bigskip
+
+    \noindent
+    \textbf{SignedM:}
+
+    We created a class [SignedM] to help parse the signed messages. A signed message includes the actual message, which is the bit in the case of Dolev-Strong, the signer who signed this message, and the signature. We created a wrapper function to help with converting between [SignedM] object and the string used for [Package]. Read the documentation of the wrapper function if needed. If you're interested in JSON, you can learn more on how it works \href{https://sites.google.com/site/gson/gson-user-guide#TOC-Primitives-Examples}{here}.
+}
+
+\subsubsection{Adversary}
+You will be asked to implement adversaries for some broken consensus protocols.
+Your attack code will extend the {\tt Adversary} class.
+    {\tt Adversary}.{\tt faulty\_players}
+returns the list of
+faulty players. The messages sent by faulty players are fully controlled
+by the adversary.
+The adversary can just call the faulty players' {\tt send} function
+to send messages on their behalf.
+The adversary has the capability of looking at what messages honest
+players intend to send in the present round, before deciding
+what messages the
+faulty players want to send in this round.
+To look at the honest messages of the present round,
+you can call the {\tt Adversary}.{\tt honestMsgs}
+function
+which returns a list of {\tt Package}s.
+
+
+
+
+\elaine{FILL}
+
+\ignore{
+    Adversary has two ways to attack, one is the delay of the messages, the second way is to control some faulty players and send messages to honest players. It can also see all messages sent by all players even before these messages are received.
+
+
+    To preform the first way of attacking, the method $sendInThisRound$ decides which messages to send in the current round, while method $attack$ is called in each round by the simulation engine to perform the second way of attack. [Adversary] controls all faulty players and the \texttt{faulty\_players} linked list is a one-to-one match with the \texttt{faulty\_players\_id}, which means the first integer in the \texttt{faulty\_players\_id} is the id of the first player in the \texttt{faulty\_players}.
+
+    In this project, there is no delay in message.
+}
+
+
+
+
+
+
+
+\section{Checkpoint 0}
+\label{sec:cp0}
+In Checkpoint 0, you will familiarize yourself with the toy ``Majority vote'' consensus protocol, %which is provided in the {\tt ./Protocol} folder. 
+implemented in the {\tt ./Protocol/Majority\_Vote\_Player.java} file.
+This protocol runs for two rounds. In the first round, each player checks whether it received a single valid message from the designated sender, and if so, signs the
+designated sender's bit and sends this message to all other players.
+Otherwise,
+it signs and sends a default bit instead. In the second round, players output the bit that received the majority of votes or output 0 if no bit or both bits received the majority of votes.
+
+%We will provide you with the implementation of this protocol. 
+Your goal is to construct an adversary that breaks either consistency or validity of this majority vote protocol.
+You should implement your attack in the {\tt ./Protocol/Majority\_Vote\_Adversary} file.
+Specifically, your task is to implement the \texttt{attack} method of the \texttt{Majority\_Vote\_Adversary} class.
+You can query the faulty players by accessing
+    {\tt Majority\_Vote\_Adversary.faulty\_players}.
+%You should try to corrupt as few players as possible. 
+In some test cases, the
+designated sender is faulty, and in others, it is honest. If the setting is unbreakable, you can simply return from the \texttt{attack} method without doing anything.
+You can test whether your attack works using \texttt{engine.checkOutput} method (check the comments in the code for more information). 
+%We ask you not to change anything else in the implementation, in particular you are also not allowed to change the signature of the \texttt{action} method. Otherwise, we won't be able to test your program. 
+
+\paragraph{Tests:}
+In {\tt ./Test/MVTestCases.java} we provided a test case for you. You may add more tests cases with different parameters for the {\tt Simulation\_Engine} to check on your code and see what will happen.
+%under MVTestCases class. 
+%When we test your code on each test case, we will decide who to corrupt, but we guarantee there is a way to break the protocol with the given corrupted players. You'll get full points if the total number of corrupted is fewest possible, and partial or no points for more corrupted players. 
+
+\section{Checkpoint 1}
+\label{sec:cp1}
+For Checkpoint 1, your task will be to implement the Dolev-Strong protocol as it was given in the lecture. Both the Dolev-Strong protocol and the majority voting protocol extend the \texttt{Player} class.
+%To help you get started, we provide the boiler-plate code which takes care of the networking, signature creation and verification in the {\tt Player} class. 
+Specifically,
+your task is to implement the method \texttt{action} in the \texttt{Student\_Player} class
+which extends {\tt Player}.
+The base class {\tt Player} takes care of some boiler-plate code for you, including
+networking and signature creation. You can read the ``Consensus Simulator Framework''
+section for more details.
+%Note that if you do not use the  
+%{\tt Player.sign} wrapper to sign messages, you need to make
+%sure that the string is sea
+%We ask you not to change anything else in the implementation, and use [SignedM] and Gson for communication. Otherwise, we might not be able to test your program. 
+
+Remember to test your code both in the honest setting (i.e., all players follow the protocol), and the adversarial setting (i.e., some players might deviate from the protocol). We highly encourage you to thoroughly test your implementation --- for example, you could output the state of each player in each round and check whether its current extracted set is exactly as expected. You could also try to see what happens if some players deviate from the protocol (for example, are not responsive).
+%Please remember to remove or comment out any extra outputs and anything else you implemented solely for testing purposes before you submit the final version.
+
+\paragraph{Tests:}
+In {\tt ./Test/DSTestCases.java} we provided four test case for you. You may add more tests cases with different parameters for the {\tt Simulation\_Engine} to check on your code and see what will happen.
+
+\paragraph{Important}
+Your Dolev-Strong player must use the following wrapper to send and receive messages.
+\begin{itemize}
+    \item {\tt DS\_Serialize}: takes in
+          a list of {\tt SignedM} objects, and creates a serialized message
+          of the {\tt String} type.
+          In the $r$-th round, you should call ${\tt DS\_Serialize}$
+          with a list of $r + 1$
+          {\tt SignedM} objects, all signing the same message, and
+          the senders should be distinct.
+
+    \item {\tt DS\_Parse}:
+          you should receive an object of type {\tt Package}.
+          You can pass the {\tt strSignedM} string contained in the received {\tt Package} object
+          to {\tt DS\_Parse}, which will return to you
+          a list of {\tt SignedM} objects.
+          To parse correctly, all of these {\tt SignedM} objects should include the same message.
+          The {\tt DS\_Parse} function
+          will throw an exception if the received message
+          cannot be parsed %in the expected manner (i.e., a mess 
+          as a message signed by a list of players.
+\end{itemize}
+
+Note that neither {\tt DS\_Serialize}
+nor {\tt DS\_Parse} will check signature validity for you,
+they also do not check that the signers are distinct, or who the signers
+are. You should check such protocol-specific semantic behaviors yourself.
+%\elaine{FILL}
+
+\section{Checkpoint 2}
+\label{sec:cp2}
+
+In Checkpoint 2, the goal is to understand why the Dolev-Strong protocol is designed exactly the way it is, and why we must be extremely careful when making any changes to the version that has been proven secure. Specifically, we will try to modify the original protocol by letting it run only a single round less than the version we saw in class, that is, run it in $f$ rounds. 
+
+You may modify your \texttt{Student\_Player} class to be an implementation of the Dolev-Strong protocol in \texttt{Dolev\_Strong\_FRound\_Player} class by updating only 1 line of code. After that, you need to implement a successful attacker for this variation.
+
+    {\spaceskip  0.56em  \relax Your task is to update the \texttt{Dolev\_Strong\_FRound\_Player} class and implement the method \texttt{attack} in the } \texttt{Dolev\_Strong\_FRound\_Adversary} class
+under the {\tt ./Protocol} directory.
+The attack is successful if at the end of the $f$-th round either the validity or the consistency of the protocol is violated.
+%As usual, we won't be able to check your implementation if you change anything outside the \texttt{Dolev\_Strong\_FRound\_Adversary} class. 
+
+\paragraph{Tests:}
+In {\tt ./Test/DSAttackTestCases.java} we provided a test case for you. 
+In the test case, you can read the number of faulty players
+from {\tt engine.numOfFaultyPlayers},
+and your
+\texttt{Dolev\_Strong\_FRound\_Player} class is parametrized to run for
+    {\tt engine.numOfFaultyPlayers}  number of rounds.
+The list of
+faulty players can be accessed through the
+    {\tt Adversary.faulty\_players} variable.
+
+%There's no partial credit in each test cases. 
+
+
+\section{Recommendations for Programming Environment}
+\label{sec:reco}
+
+This lab runs in Java 11,
+you can use any editor and development environment that allows you to edit, compile and run the code.
+\bigskip
+
+We recommend using either Intellij to edit/compile/run or use your favorite editor to edit code and shell scripts provided by us to compile/run code as described below.
+
+\subsection{Intellij}
+You can download Intellij unlimited from
+\href{https://www.jetbrains.com/idea/download/}{here}
+, and get a free Intellij License from
+\href{https://www.jetbrains.com/shop/eform/students}{from}.
+\bigskip
+
+After you have downloaded the Intellij and the source code for this lab, open Intellij, and select \texttt{Open}, then choose the \texttt{code/src} folder. 
+Once the project folder is loaded in Intellij, we will setup the project SDK and add the library dependencies.
+\begin{itemize}
+\item Project SDK: click $\tt{File} \to \tt{Project \ Structure}$, go to $\tt{Project} \to \tt{Project \ Settings}$ and for the SDK field, choose 11.
+\item Dependencies: click $\tt{File} \to \tt{Project \ Structure}$, go to $\tt{Project} \to \tt{Modules} \to \tt{Dependencies}$, click the $+$ sign (see Figure~\ref{fig:dependencies}) and then click \texttt{JARs or Directories}. At this point, add \texttt{gson-2.8.5.jar}, \texttt{hamcrest-core-1.3.jar}, and \texttt{junit-4.13.2.jar} JAR files from the \texttt{Code/lib} directory.
+\end{itemize}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{dependencies.png}
+\caption{Adding dependencies in Intellij}
+\label{fig:dependencies}
+\end{figure}
+After these steps are done, you should be able to successfully compile the starter code.
+
+Once the code is compiled, you can run any test in the \texttt{./Test/} directory. For example, to run \texttt{testDrop1} in \texttt{DSTestCases}, go the the \texttt{./Test/DSTestCases.java} file and click the green triangle next to line $12$. If you want to run all the tests in \texttt{DSTestCases}, click the green triangle next to line $10$. If you want to run all the tests for all the checkpoints, click the green triangle next to line $15$ in the \texttt{./Test/RunTests.java} file.
+% \bigskip
+
+% Back to the main window, click Add Configurations between the build and run sign, then click + sign on the top left $\rightarrow$ Application, selects main as the main class, then it should be able to run.
+
+% Now you should be able to run the project by clicking the triangle on the top right, and it should output all players' output whether the protocol was broken or not.
+
+\subsection{Shell scripts}
+In the {\tt Code} folder, you can find two shell scripts
+    {\tt compile.sh} and {\tt run.sh}.
+The command {\tt ./compile.sh} compiles all of the code along with the dependencies.
+The command {\tt ./run.sh} runs all the test cases that we have provided you.
+Alternately, test cases for specific checkpoints can be run as follows.
+\begin{itemize}
+\item Checkpoint 0: {\tt ./run.sh \ Majority\_Vote\_Adversary}
+\item Checkpoint 1: {\tt ./run.sh \ Student\_Player}
+\item Checkpoint 2: {\tt ./run.sh \ Dolev\_Strong\_FRound\_Adversary}
+\end{itemize}
+%\end{document}

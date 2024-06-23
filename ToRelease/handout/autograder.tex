@@ -1,0 +1,24 @@
+\pagebreak
+
+\section{Autograder Integration}
+
+We currently support Gradescope for autograding. There are two options available for integrating the autograder with Gradescope.
+
+\paragraph{Set Up Your Own Autograder}
+Our project is compatible with Gradescope, as we utilize JUnit tests in the \texttt{Test} class. To integrate your autograder, follow the instructions provided in the \href{https://gradescope-autograders.readthedocs.io/en/latest/getting_started/#setting-up-your-assignment}{Gradescope Autograder Documentation}  to build your base image and upload it to Gradescope.
+
+Specifically, you will need to create two files
+\begin{itemize}
+    \item
+           \texttt{setup.sh} This file instructs the autograder to install the necessary dependencies for the project.
+    \item
+          \texttt{run\_autograder}  This file guides the autograder to copy the students' code into the project, compile it, and execute the tests. 
+\end{itemize}
+
+Details could be fined in the link above.
+
+\paragraph{Modify Our Autograder}
+If you prefer not to build your autograder from scratch, you can contact Junxi Song for access to our autograder configuration, including our test cases. Although the file hierarchy differs slightly from the open-source version, it remains fully functional.
+
+
+%\end{document}

@@ -1,0 +1,695 @@
+%\documentclass[conference]{IEEEtran}
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+
+\usepackage{cite}
+
+
+\usepackage[bookmarks=true,pdfstartview=FitH,colorlinks,linkcolor=darkred,filecolor=darkred,citecolor=darkred,urlcolor=darkred]{hyperref}
+
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\usepackage{colortbl}
+\usepackage{mdframed}
+\usepackage{color,soul}
+%\usepackage{tabstackengine}
+
+\usepackage{paralist}
+\usepackage{pdfpages}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage[override]{cmtt}
+%\usepackage{titlesec}
+\usepackage{color,xcolor}
+
+%\usepackage{inconsolata,graphicx,color,eso-pic}
+\usepackage{graphicx,color,eso-pic}
+
+\usepackage[
+	lambda,
+	advantage,
+	operators,
+	sets,
+	adversary,
+	landau,
+	probability,
+	notions,
+	logic,
+	ff,
+	mm,
+	primitives,
+	events,
+	complexity,
+	asymptotics,
+	keys]
+{cryptocode}
+
+\usepackage{tikz}
+\usetikzlibrary{fit, shapes, positioning, patterns, arrows,shadows}
+
+\tikzset{
+    master/.style={
+        execute at end picture={
+            \coordinate (lower right) at (current bounding box.south east);
+            \coordinate (upper left) at (current bounding box.north west);
+        }
+    },
+    slave/.style={
+        execute at end picture={
+            \pgfresetboundingbox
+            \path (upper left) rectangle (lower right);
+        }
+    }
+}
+
+%\definecolor{lightgray}{rgb}{0.85, 0.85, 0.85}
+\sethlcolor{lightgray}
+%% Macros used in this paper
+\input{macro.tex}
+
+
+
+\renewcommand{\highlightkeyword}[2][\ ]{\ensuremath{\textrm{#2}}#1}
+
+%\titlespacing{\section}{0pt}{*2.5}{*1.5}
+%\titlespacing{\subsection}{0pt}{*2}{*0.8}
+%\titlespacing{\subsubsection}{0pt}{*0.5}{*0}
+%\newcommand{\ignore}[1]{}
+
+\newcommand{\msf}[1]{\ensuremath{{\mathsf {#1}}}}
+%\newcommand{\mtt}[1]{\ensuremath{\mathtt {#1}}}
+\newcommand{\mcal}[1]{\ensuremath{\mathcal {#1}}}
+\newcommand{\fsgx}{{\color{darkred}{\ensuremath{\mcal{G}_{\textrm{sgx}}}}}\xspace}
+\newcommand{\ftpm}{{\color{darkred}{\ensuremath{\mcal{G}_{\textrm{tpm}}}}}\xspace}
+\newcommand{\fsgxrelax}{{\color{darkred}{\ensuremath{\widetilde{\mcal{G}}_{\textrm{sgx}}}}}\xspace}
+\newcommand{\ftpmrelax}{{\color{darkred}{\ensuremath{\widetilde{\mcal{G}}_{\textrm{tpm}}}}}\xspace}
+\newcommand{\foutsource}{{\color{darkred}{\ensuremath{\mcal{F}_{\textrm{outsrc}}}}}\xspace}
+\newcommand{\fenclave}{{\color{darkred}{\ensuremath{\mcal{F}_{\textrm{enclave}}}}}\xspace}
+\newcommand{\fsc}{{\color{darkred}{\ensuremath{\mcal{F}_{\textrm{sc}}}}}\xspace}
+\newcommand{\fauth}{{\color{darkred}{\ensuremath{\mcal{F}_{\textrm{auth}}}}}\xspace}
+\newcommand{\fstatefulobf}{{\color{darkred}{\ensuremath{\mcal{F}_{\textrm{statefulobf}}}}}\xspace}
+\newcommand{\fsgxprime}{{\color{darkred}{\ensuremath{\widehat{\mcal{G}}_{\textrm{sgx}}}}}\xspace}
+\newcommand{\fcom}{{\color{darkred}{\ensuremath{\mcal{F}_{\textrm{com}}}}}\xspace}
+\newcommand{\ftwopc}{{\color{darkred}{\ensuremath{\mcal{F}_{\textrm{2pc}}}}}\xspace}
+\newcommand{\fmpc}{{\color{darkred}{\ensuremath{\mcal{F}_{\textrm{mpc}}}}}\xspace}
+
+\newcommand{\algM}{{\color{darkred}\ensuremath{\mcal{M}}}\xspace}
+\newcommand{\algS}{{\color{black}\ensuremath{{\sf Sim}}}\xspace}
+\newcommand{\algC}{{\color{black}\ensuremath{\mcal{C}}}\xspace}
+\newcommand{\algP}{{\color{darkred}\ensuremath{\mcal{P}}}\xspace}
+\newcommand{\algPi}{{\color{darkred}\ensuremath{\mcal{P}_i}}\xspace}
+\newcommand{\algPj}{{\color{darkred}\ensuremath{\mcal{P}_j}}\xspace}
+\newcommand{\algPone}{{\color{darkred}\ensuremath{\mcal{P}_1}}\xspace}
+\newcommand{\algPn}{{\color{darkred}\ensuremath{\mcal{P}_n}}\xspace}
+\newcommand{\algR}{{\color{darkred}\ensuremath{\mcal{R}}}\xspace}
+\newcommand{\algA}{{\ensuremath{\mcal{A}}}\xspace}
+\newcommand{\algB}{{\ensuremath{\mcal{B}}}\xspace}
+\renewcommand{\adv}{{\color{black}\ensuremath{\mcal{A}}}\xspace}
+\newcommand{\envi}{{\color{darkred}\ensuremath{{\mcal{Z}}}}\xspace}
+\newcommand{\algZ}{{\color{darkred}\ensuremath{{\mcal{Z}}}}\xspace}
+\newcommand{\Sim}{\ensuremath{\msf{Sim}}\xspace}
+%\newcommand{\st}{\ensuremath{{\it st}}\xspace}
+
+\newcommand{\ct}{\ensuremath{{\sf ct}}\xspace}
+\newcommand{\CT}{\ensuremath{{\sf CT}}\xspace}
+\renewcommand{\ppt}{\ensuremath{{\text{p.p.t.}}}\xspace}
+\renewcommand{\poly}{\ensuremath{{{\sf poly}}}\xspace}
+\newcommand{\type}{\ensuremath{{\sf type}}\xspace}
+\newcommand{\authenc}{\ensuremath{{\sf AE}}}
+
+\renewcommand{\TC}{\ensuremath{{\bf TC}}}
+\newcommand{\LC}{\ensuremath{{\bf LC}}}
+\newcommand{\req}{\ensuremath{{\sf req}}\xspace}
+\renewcommand{\d}{\ensuremath{\mathfrak{\delta}}\xspace}
+\newcommand{\tc}{\ensuremath{\mathrm{tc}}}
+\newcommand{\lc}{\ensuremath{\mathrm{lc}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+\newcommand{\Alg}{\mathcal{A}}
+%\newcommand{\dist}{\textrm{dist}}
+\newcommand{\Fam}{\mathcal{F}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\In}{\textrm{In}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\iseq}{\overset{\text{?}}{=}}
+
+%\newcommand{\view}{\ensuremath{{\sf view}}\xspace}
+
+\newcommand{\ie}{i.e.,\xspace}
+\newcommand{\eg}{e.g.,\xspace}
+\newcommand{\mcfe}{{\ensuremath{\sf MCFE}}\xspace}
+\newcommand{\mcfeffh}{{\ensuremath{{\sf MCFE}^{\rm ffh}}}\xspace}
+\newcommand{\MCFEffh}{{\ensuremath{{\sf MCFE}^{\rm ffh}}}\xspace}
+\newcommand{\MCIPE}{{\ensuremath{\sf MCFE}}\xspace}
+\newcommand{\MCFE}{{\ensuremath{\sf MCFE}}\xspace}
+\newcommand{\FE}{{\ensuremath{\sf FE}}\xspace}
+\newcommand{\fe}{{\ensuremath{\sf FE}}\xspace}
+\newcommand{\SE}{{\ensuremath{\sf SE}}\xspace}
+\newcommand{\Leak}{{\ensuremath{\sf Leak}}\xspace}
+\newcommand{\HH}{{\ensuremath{\sf HH}}\xspace}
+\newcommand{\HHb}{{\ensuremath{{\sf HH}^b}}\xspace}
+\newcommand{\HK}{{\ensuremath{\sf HK}}\xspace}
+\newcommand{\HKb}{{\ensuremath{{\sf HK}^b}}\xspace}
+%\newcommand{\HH}{\ensuremath{{\mcal{S}_{\rm HH}}}\xspace}
+%\newcommand{\HHb}{\ensuremath{{\mcal{S}^b_{\rm HH}}}\xspace}
+%\newcommand{\HK}{\ensuremath{{\mcal{S}_{\rm HK}}}\xspace}
+%\newcommand{\HKb}{\ensuremath{{\mcal{S}^b_{\rm HK}}}\xspace}
+%\newcommand{\HH}{{\ensuremath{\mcal{H}_S^{\rightarrow H}}}\xspace}
+%\newcommand{\HK}{{\ensuremath{\sf HK}}\xspace}
+%\newcommand{\HK}{{\ensuremath{\mcal{H}_S^{\rightarrow K}}}\xspace}
+%\newcommand{\HK}{{\ensuremath{\sf HK}}\xspace}
+\newcommand{\tPKE}{{\ensuremath{\sf tPKE}}\xspace}
+\newcommand{\tpk}{{\ensuremath{\sf tpk}}\xspace}
+\newcommand{\epk}{{\ensuremath{\sf epk}}\xspace}
+\newcommand{\esk}{{\ensuremath{\sf esk}}\xspace}
+\newcommand{\cprf}{{\ensuremath{\sf CPRF}}\xspace}
+\newcommand{\online}{{\ensuremath{\mcal{O}}}\xspace}
+
+\renewcommand{\iO}{\ensuremath{{{\sf iO}}}\xspace}
+\newcommand{\io}{\ensuremath{{{\sf iO}}}\xspace}
+\newcommand{\pio}{\ensuremath{{{\sf piO}}}\xspace}
+\newcommand{\piO}{\ensuremath{{{\sf piO}}}\xspace}
+
+
+\newcommand{\param}{\ensuremath{{\sf pp}}\xspace}
+\newcommand{\Gen}{\ensuremath{{\bf Gen}}\xspace}
+\newcommand{\Setup}{\ensuremath{{\bf Setup}}\xspace}
+\newcommand{\Expt}{\ensuremath{{\sf Expt}}\xspace}
+\newcommand{\Real}{\ensuremath{{\sf Real}}\xspace}
+\newcommand{\Ideal}{\ensuremath{{\sf Ideal}}\xspace}
+\newcommand{\Hyb}{\ensuremath{{\sf Hyb}}\xspace}
+\newcommand{\Gb}{\ensuremath{{\bf Gb}}\xspace}
+\newcommand{\Eval}{\ensuremath{{\bf Eval}}\xspace}
+\newcommand{\Enc}{\ensuremath{{\bf Enc}}\xspace}
+\newcommand{\Rte}{\ensuremath{{\bf Rte}}\xspace}
+\newcommand{\Dec}{\ensuremath{{\bf Dec}}\xspace}
+\newcommand{\KeyGen}{\ensuremath{{\bf KGen}}\xspace}
+\newcommand{\KGen}{\ensuremath{{\bf KGen}}\xspace}
+\renewcommand{\prf}{\ensuremath{{\sf PRF}}\xspace}
+\newcommand{\PRF}{\ensuremath{{\sf PRF}}\xspace}
+\newcommand{\boldtau}{\ensuremath{{\boldsymbol{\tau}}}\xspace}
+
+
+\newcommand{\ek}{\ensuremath{{\sf ek}}\xspace}
+\newcommand{\gsk}{\ensuremath{{\sf gsk}}\xspace}
+\newcommand{\dk}{\ensuremath{{\sf dk}}\xspace}
+\newcommand{\rk}{\ensuremath{{\sf rk}}\xspace}
+\newcommand{\tk}{\ensuremath{{\sf tk}}\xspace}
+\newcommand{\crupt}{\ensuremath{{\sf crupt}}\xspace}
+%\newcommand{\ct}{\ensuremath{{\bf ct}}\xspace}
+
+
+
+
+
+\newcommand{\TODO}[1]{\noindent
+\colorbox{green!20}{
+\parbox{0.98\textwidth}{
+#1
+}}
+}
+
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\definecolor{lightblue}{RGB}{0,176,240}
+\definecolor{darkblue}{RGB}{0,112,192}
+\definecolor{lightpurple}{RGB}{124, 66, 168}
+%\definecolor{orange}{rgb}{1,0.5,0}
+\definecolor{grey}{RGB}{139, 137, 137}
+\definecolor{maroon}{RGB}{178, 34, 34}
+\definecolor{green}{RGB}{34, 139, 34}
+\definecolor{types}{RGB}{72, 61, 139}
+%\definecolor{gold}{rgb}{0.85, 0.65, 0.13}
+\definecolor{gold}{rgb}{0.8, 0.33, 0.0}
+
+\newcommand{\sred}[1]{{\color{maroon} \msf{#1}}}
+\newcommand{\sblue}[1]{{\color{lightblue} {#1}}}
+\newcommand{\spurple}[1]{{\color{lightpurple} \msf{#1}}}
+\newcommand{\sorange}[1]{{\color{orange} \msf{#1}}}
+\newcommand{\sgold}[1]{{\color{gold} {#1}}}
+\newcommand{\smaroon}[1]{{\color{maroon} {#1}}}
+\newcommand{\sgrey}[1]{{\color{grey} \msf{#1}}}
+\newcommand{\sseablue}[1]{{\color{darkblue} {\bf #1}}}
+\newcommand{\sdarkgreen}[1]{{\color{darkgreen} {#1}}}
+\newcommand{\sdarkblue}[1]{{\color{darkblue} {#1}}}
+
+\definecolor{darkgray}{gray}{0.3}
+\newcommand{\cgray}[1]{{\color{darkgray} {#1}}}
+\newcommand{\sgray}[1]{{\color{gray!100} {#1}}}
+\newcommand{\skiptext}[1]{}
+%\newcommand{\envi}{\ensuremath{{\sf env}}\xspace}
+\newcommand{\msg}{\ensuremath{{{\sf msg}}}\xspace}
+%\newcommand{\owf}{\ensuremath{{{\sf owf}}}\xspace}
+\newcommand{\comm}{\ensuremath{{{\sf com}}}\xspace}
+\newcommand{\mpc}{\ensuremath{{{\sf mpc}}}\xspace}
+\newcommand{\getr}{\ensuremath{{\overset{\$}{\leftarrow}}}\xspace}
+\renewcommand{\sample}{\ensuremath{{\overset{\$}{\leftarrow}}}\xspace}
+\newcommand{\some}{{some \xspace}}
+
+\newcommand{\Prot}{\ensuremath{{{\bf Prot}}}\xspace}
+
+\newcommand{\install}{{\color{darkblue} \ensuremath{{{\tt install}}}\xspace}}
+\newcommand{\resume}{{\color{darkblue} \ensuremath{{{\tt resume}}}\xspace}}
+\newcommand{\getpk}{{\color{darkblue} \ensuremath{{{\tt getpk}}}\xspace}}
+\newcommand{\corrupt}{{\color{darkblue} \ensuremath{{{\tt corrupt}}}\xspace}}
+%\newcommand{\sign}{{\color{darkblue} \ensuremath{{{\tt sign}}}\xspace}}
+
+\newcommand{\mpk}{\ensuremath{{\sf mpk}}\xspace}
+\newcommand{\msk}{\ensuremath{{\sf msk}}\xspace}
+\newcommand{\RO}{\ensuremath{{\sf RO}}\xspace}
+
+
+
+%%%
+%%% FAN's MACRO 
+%%% XXX
+%%%
+\newcommand{\onrcv}{\xspace\sblue{On~receive}\xspace}
+\newcommand{\oninp}{\xspace\sblue{On~input}\xspace}
+\newcommand{\oncall}{\xspace\sblue{On~call}\xspace}
+
+\newcommand{\onrcvonce}{\xspace\sdarkgreen{On~receive}\xspace}
+\newcommand{\oninponce}{\xspace\sdarkgreen{On~input}\xspace}
+\newcommand{\pcforall}{{\bf for all}\xspace}
+%\renewcommand{\pcreturn}{output\xspace}
+%\renewcommand{\pcif}{if\xspace}
+%\renewcommand{\pcelse}{else\xspace}
+%\renewcommand{\pcfor}{for\xspace}
+%\renewcommand{\pcthen}{then\xspace}
+
+\newcommand{\progcomment}[1]{\cgray{\small \it //~#1}}
+
+% vars
+\newcommand{\inpfsgx}{{\ensuremath{{{\color{black}\sf inp}}}}}
+\newcommand{\inp}{{\ensuremath{{{\color{black}\sf inp}}}}}
+\newcommand{\outpfsgx}{{\ensuremath{{{\color{black}\sf outp}}}}}
+\newcommand{\outp}{{\ensuremath{{{\color{black}\sf outp}}}}}
+\newcommand{\regfsgx}{{\ensuremath{{{\color{black}\sf reg}}}}}
+
+% keywords
+\newcommand{\memfsgx}{{\ensuremath{\sf{{\color{black}mem}}}}}
+\newcommand{\prog}{{\ensuremath{\sf{{\color{black}prog}}}}}
+\newcommand{\progfsgx}{{\ensuremath{\sf{{\color{black}prog}}}}}
+\newcommand{\iffsgx}{{\xspace{{\color{black}if}}\xspace}}
+
+% operations
+\newcommand{\assertfsgx}{{assert}\xspace}
+\newcommand{\recordfsgx}{{record}\xspace}
+\newcommand{\sendfsgx}{{\color{darkblue}{asend}}\xspace}
+\newcommand{\secsendfsgx}{{\color{darkblue}{ssend}}\xspace}
+\newcommand{\letfsgx}{{let}\xspace}
+\newcommand{\returnfsgx}{{return}\xspace}
+
+% strings
+\newcommand{\stringfsgx}[1]{{\color{brown}\textrm{``{#1}''}}}
+\newcommand{\party}[1]{{{\color{darkred}#1}}\xspace}
+\newcommand{\func}[1]{\ensuremath{{\color{darkred}\mcal{#1}}}\xspace}
+
+% lineno
+\newcommand{\lnn}[1]{\small{\texttt{#1}}\xspace}
+
+
+
+\newcommand{\appendices}{appendices\xspace}
+
+
+
+\usepackage{boxedminipage}
+%\usepackage{fancyhdr}
+%\usepackage{djb}
+\usepackage{cite}
+%\usepackage{times}
+%\usepackage{array}
+\usepackage{url}
+%\usepackage{pdfpages}
+%\usepackage{listings}
+%\usepackage{fullpage}
+%\usepackage[left=1in,top=1in,right=1in,bottom=1in]{geometry}
+%\usepackage{graphics}
+%\usepackage{graphicx,proof}
+\usepackage{graphicx}
+%\usepackage{algorithm2e}
+\usepackage[bf,justification=centering]{caption}
+\usepackage[justification=centering]{subcaption}
+%\usepackage{subcaption}
+%\usepackage{epsfig,psfrag}
+\usepackage{color}
+%\usepackage{comment}
+\usepackage{xspace}
+\usepackage{multirow}
+%\usepackage[sort&compress,sectionbib]{natbib}
+
+\usepackage{amsthm}
+%\usepackage{fdsymbol}
+%\undef\centerdot
+%\undef\circledS
+%\undef\thicksim
+%\undef\thickapprox
+%\undef\hslash
+
+
+%\usepackage{amsthm,amstext}
+\usepackage{amsmath,amsthm,amstext,amsfonts,amssymb,latexsym}
+\usepackage{amsbsy}
+\usepackage{stmaryrd}
+\usepackage{pifont}
+
+\setcounter{MaxMatrixCols}{15}
+
+\newcommand\smallblacktriangledown{%
+   \vcenter{\hbox{${\scriptscriptstyle\blacktriangledown}$}}}
+\newcommand\smalltriangledown{%
+   \vcenter{\hbox{${\scriptscriptstyle\triangledown}$}}}
+\newcommand{\piinv}{\ensuremath{\pi^{{\scriptscriptstyle{-}}1}}\xspace}
+
+
+\newcommand\whitestar{{\ensuremath{\mbox{\scriptsize \ding{65}}}}\xspace}
+
+%\renewcommand{\widehat}{\mathaccent "0670\relax}
+%\renewcommand{\widetilde}{\mathaccent "0672\relax}
+
+
+%\usepackage{amsmath,amsthm,amstext,amsfonts,latexsym}
+%\usepackage{shortcuts}
+%\usepackage{code}
+\usepackage{wrapfig}
+
+
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithmicx}
+
+%\usepackage{algorithm2e}
+
+
+
+%\setlength{\floatsep}{0.5ex}
+%\setlength{\textfloatsep}{3pt}
+%\setlength{\abovecaptionskip}{3pt}
+%\setlength{\belowcaptionskip}{0ex}
+
+%\setlength{\parsep}{0pt}
+
+%\pagestyle{fancy}
+%\headheight 35pt
+
+\definecolor{darkred}{rgb}{0.5, 0, 0}
+\definecolor{darkgreen}{rgb}{0, 0.5, 0}
+\definecolor{darkblue}{rgb}{0,0,0.5}
+
+
+%\lhead{\thepage \quad \quad \quad Ensighta Security Inc.}
+%\rhead{Topic \# A10-013 \quad Proposal \# Army SBIR 2010.1}
+%\lhead{\thepage}
+%\chead{}
+%\fancyfoot{}
+%\chead{Ensighta Security Inc.}
+%\setpagewiselinenumbers
+%\linenumbers
+%\pagewiselinenumbers
+
+%\setlength{\textwidth}{7in} \setlength{\textheight}{9.62in}
+
+{
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+}
+%\newtheorem{proposition}{Proposition}
+%\newtheorem{example}{Example}
+
+%\usepackage{breakurl}
+%\def\baselinestretch{0.97}
+% center the one-line caption of a figure.
+%\centerfigcaptionstrue
+%\newcommand\markx[2]{\mbox{}\marginpar{\raggedright\hspace{0pt}#1:#2}}
+\newcommand\markx[2]{}
+\newcommand\markme[1]{\markx{ME}{#1}}
+\newcommand\markjim[1]{\markx{JIM}{#1}}
+\newcommand\marka[1]{\markx{R1}{#1}}
+\newcommand\markb[1]{\markx{R2}{#1}}
+\newcommand\markc[1]{\markx{R3}{#1}}
+
+\newcommand{\marknew}{}
+\newcommand{\DB}{\mathbf{DB}}
+
+
+%\newcommand{\model}{\mathbf{\Omega}}
+%\newcommand{\appendices}{supplementary materials\xspace}
+
+%\newcommand{\authnote}[2]{{\bf #1 : #2}}
+%\newcommand{\authnote}[2]{}
+
+\newcommand{\david}[1]{{\authnote{david}{#1}}}
+%\newcommand{\runting}[1]{{\authnote{runting}{#1}}}
+\newcommand{\runting}[1]{{\footnotesize\color{red}[runting: #1]}}
+\newcommand{\futureresearch}[1]{{\footnotesize\color{red}[dawn: #1]}}
+\newcommand{\jim}[1]{{\authnote{jim}{#1}}}
+%\newcommand{\dawn}[1]{{\authnote{dawn}{#1}}}
+\newcommand{\zk}[1]{{\authnote{zk}{#1}}}
+\newcommand{\cody}[1]{{\authnote{cody}{#1}}}
+\newcommand{\heng}[1]{{\authnote{heng}{#1}}}
+\newcommand{\name}{Circuit OPRAM\xspace}
+%\newcommand{\aname}{an Elixir\xspace}
+%\newcommand{\Aname}{An Elixir\xspace}
+
+\newcommand{\pid}{{\color{darkgray}\mathit{pid}}}
+\newcommand{\idx}{{\color{darkgray}\mathit{idx}}}
+\newcommand{\eid}{{\color{darkgray}\mathit{eid}}}
+\newcommand{\sid}{{\color{darkgray}\mathit{sid}}}
+\newcommand{\ssid}{{\color{darkgray}\mathit{ssid}}}
+%\newcommand{\sk}{\mathsf{sk}}
+%\newcommand{\pk}{\mathsf{pk}}
+%\newcommand{\idx}{\mathit{idx}}
+%\newcommand{\poly}{\mathit{poly}}
+\newcommand{\pc}{{\tt pc}}
+\newcommand{\op}{\ensuremath{\mathsf{op}}\xspace}
+\newcommand{\reg}{{\tt reg}}
+\newcommand{\regs}{{\tt regs}}
+\newcommand{\raddr}{{\tt raddr}}
+\newcommand{\waddr}{{\tt waddr}}
+
+
+\renewcommand{\path}{\ensuremath{\mathsf{path}}\xspace}
+\newcommand{\block}{{\sf B}}
+
+
+\newcommand{\src}{{\sf src}}
+\newcommand{\dst}{{\sf dst}}
+
+
+
+\newcommand{\Path}{{\sf path}}
+\newcommand{\posmap}{{\sf posmap}}
+\newcommand{\dataopram}{\ensuremath{{\sf data}\text{-}{\sf OPRAM}}\xspace}
+\newcommand{\posopram}{\ensuremath{{\sf pos}\text{-}{\sf OPRAM}}\xspace}
+\newcommand{\posoprams}{\ensuremath{{\sf pos}\text{-}{\sf OPRAM}\text{s}}\xspace}
+%\newcommand{\root}{{\sf root}}
+
+
+\newcommand{\data}{{\ensuremath{\mathsf{data}}}\xspace}
+\newcommand{\addr}{{\ensuremath{\mathsf{addr}}}\xspace}
+\newcommand{\phaddr}{{\ensuremath{\mathsf{phaddr}}}\xspace}
+\newcommand{\fetched}{{\ensuremath{\mathsf{fetched}}}\xspace}
+\newcommand{\wdata}{{\tt wdata}}
+\newcommand{\rdata}{{\tt rdata}}
+\newcommand{\OPRAM}{{\sf OPRAM}}
+\newcommand{\rlvl}{d}
+\newcommand{\RLVL}{D}
+\newcommand{\rpos}{{\sf rpos}}
+\newcommand{\lpos}{{\sf lpos}}
+\newcommand{\aux}{{\sf aux}}
+\newcommand{\elem}{{\sf elem}}
+\newcommand{\pair}{{\sf pair}}
+\newcommand{\used}{{\beta}}
+\newcommand{\arr}{{\sf arr}}
+\renewcommand{\negl}{{\sf negl}}
+\newcommand{\reqs}{{\sf reqs}}
+%\newcommand{\bLeft}{{\sf b}_0}
+%\newcommand{\bRight}{{\sf b}_1}
+
+
+\newcommand{\grp}[1]{{\ensuremath{\llbracket #1 \rrbracket}}\xspace}
+\newcommand{\biggrp}[1]{\ensuremath{\left\llbracket #1 \right\rrbracket}\xspace}
+\newcommand{\N}{\ensuremath{\mathbb{N}}\xspace}
+\newcommand{\G}{\ensuremath{\mathbb{G}}\xspace}
+\newcommand{\Z}{\ensuremath{\mathbb{Z}}\xspace}
+\newcommand{\bfalpha}{\ensuremath{{\boldsymbol \alpha}}\xspace}
+%\newcommand{\bfI}{\ensuremath{{\bf I}}\xspace}
+%\newcommand{\bfC}{\ensuremath{{\bf C}}\xspace}
+%\newcommand{\bfP}{\ensuremath{{\bf P}}\xspace}
+%\newcommand{\bfM}{\ensuremath{{\bf M}\xspace}
+\newcommand{\treesmall}{\ensuremath{{\tt tree}_{\blacktriangledown}}}
+\newcommand{\treebig}{\ensuremath{{\tt tree}_{\clubsuit}}}
+
+\newcommand{\SEE}{SEE\xspace}
+\newcommand{\aSEE}{a SEE\xspace}
+\newcommand{\ignore}[1]{}
+\newcommand{\etal}{\textit{et al.}\xspace}
+
+%\renewcommand{\paragraph}[1]{\vspace{6pt}\noindent\textbf{#1}}
+\newcommand{\mypara}[1]{\vspace{10pt}\noindent\textbf{#1}}
+\newcommand{\squish}{
+      \setlength{\topsep}{0pt}
+      \setlength{\itemsep}{0ex}
+      \vspace{-1ex}
+      \setlength{\parskip}{0pt}}
+
+
+\newcommand{\pksgx}{\ensuremath{{\sf pk}_{\textrm{sgx}}}}
+\newcommand{\sksgx}{\ensuremath{{\sf sk}_{\textrm{sgx}}}}
+\newcommand{\user}{\ensuremath{{\sf U}}}
+
+
+
+\newcounter{task}
+\newenvironment{task}[1]{ \refstepcounter{task} \paragraph{Task T\arabic{task}: #1}}{}
+
+
+\newenvironment{proofof}[1]{\noindent \textbf{Proof of #1:}}{\hfill \qed}
+
+
+\newtheorem{thm}{Theorem}[section]      % A counter for Algorithms etc
+
+
+\newtheorem{theorem}[thm]{Theorem}
+\newtheorem{conj}[thm]{Conjecture}
+\newtheorem{conjecture}[thm]{Conjecture}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem{claim}[thm]{Claim}
+\newtheorem{corollary}[thm]{Corollary}
+\newtheorem{fact}[thm]{Fact}
+\newtheorem{proposition}[thm]{Proposition}
+%\newtheorem{example}[thm]{Example}
+
+
+
+\newtheoremstyle{boxes}% name  
+{2pt}% ?Space above ? 
+{0pt}% ?Space below ?
+{}% ?Body font ?
+{}% ?Indent amount ?
+{\bfseries}% ?Theorem head font?
+{}% ?Punctuation after theorem head ?
+{\newline}% ?Space after theorem head ?
+{\thmname{#1}\thmnumber{ #2}:  
+\thmnote{#3}}
+
+\theoremstyle{boxes}
+\newtheorem{myalgo}[thm]{Algorithm}%{\bf}{} %
+\newtheorem{myfunc}[thm]{Functionality}%{\bf}{} %
+\newtheorem{myconst}[thm]{Construction}%{\bf}{} %
+%\newtheorem{algorithm}{Algorithm}
+
+{
+\theoremstyle{definition}
+\newtheorem{remark}{Remark}
+}
+
+\newcommand{\elaine}[1]{{\footnotesize\color{magenta}[Elaine: #1]}}
+\newcommand{\Hao}[1]{{\footnotesize\color{blue}[Hao: #1]}}
+\renewcommand{\elaine}[1]{}
+ \renewcommand{\Hao}[1]{}
+
+
+\newcommand{\reactively}{}
+\newcommand{\Reactively}{}
+\newcommand{\reactive}{}
+\newcommand{\Reactive}{}
+\newcommand{\Rft}{Fault-tolerant\xspace}
+
+\newenvironment{MyEnumerate}[1]{\begin{enumerate}\setlength{\itemsep}{0.1cm}
+\setlength{\parskip}{-0.05cm} #1}{\end{enumerate}}
+\newenvironment{MyItemize}[1]{\begin{itemize}\setlength{\itemsep}{0.1cm}
+\setlength{\parskip}{-0.05cm} #1}{\end{itemize}}
+
+
+
+\newcounter{cnt:challenge}
+
+%\urlstyle{sf}
+
+\newcommand{\elainetodo}[1]{%
+    \colorbox{red!20}{%
+\parbox{\textwidth}{
+elaine: \\
+ #1
+    }
+}
+}
+
+\newenvironment{solution}[1][\unskip]{%
+\par
+\noindent
+\textbf{Solution #1:}
+\noindent}
+{}
+
+\newif\ifhidesolutions
+%\hidesolutionstrue %uncomment to hide solutions
+
+\ifhidesolutions
+\usepackage{environ}
+\NewEnviron{hide}{}
+\let\solution\hide
+\let\endsolution\endhide
+\fi
+
+\newcommand{\rb}[1]{\colorbox{blue!20}{#1}}
+\newcommand{\wt}[1]{{#1}}
+\newcommand{\highlight}[1]{\colorbox{lightgray}{$\displaystyle #1$}}
+
+
+
+%\pagecolor{black}
+%\color{white}
+
+\begin{document}
+%
+\title{{\bf Foundations of Blockchains - Consensus Lab}  \\
+{\large {\bf Open Source Version}}
+}
+\author{}
+\date{}
+
+\maketitle
+
+
+
+%{\Huge TODO: update the points and Submission instructions}
+The lab is an open-source version of the Consensus Lab used in the Foundations of Blockchains course at Carnegie Mellon University. This version includes lab instructions, starter code, and setup instructions for the auto-grader using Gradescope.
+
+\paragraph{Students} %your solution should be in PDF format.
+For students, the content in this repository is sufficient for learning and practicing distributed consensus. You can test your code with the provided test cases in the "Test" folder. Your working file would be:
+
+\begin{itemize}
+    \item
+          Checkpoint 0: \texttt{Majority\_Vote\_Adversary.java}
+    \item
+          Checkpoint 1: \texttt{Student\_Player.java}
+    \item
+          Checkpoint 2: \texttt{Dolev\_Strong\_FRound\_Adversary.java}
+\end{itemize}
+
+\paragraph{Instructors:}For instructors interested in using this lab in their course, please contact Junxi Song at 20001218sjx@gmail.com for the solution and additional test cases. In our current autograder setup, each checkpoint has test cases assigned point values:
+
+\begin{itemize}
+    \item
+          Checkpoint 0: 16 test cases, each worth 1 point
+    \item
+          Checkpoint 1: 41 test cases, each worth 1 point
+    \item
+          Checkpoint 2: 12 test cases, each worth 1 point
+\end{itemize}
+
+
+
+
+%\paragraph{\Large Submission instructions.}
+
+
+%>>>>>>> 415186ab36f55f7954ddae2f11267928b2ccd3e5
+
+\input{description}
+\input{autograder}
+
+\end{document}
